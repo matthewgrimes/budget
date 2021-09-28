@@ -7,23 +7,28 @@ import Decimal from 'decimal.js';
 export class BudgetDataBase extends React.Component {
   constructor(props){
     super(props)
-    this.state = { data:
-    [{'Budgeted': Decimal(0.00),
-  'Category': 'Master:Sub',
-  'Category Balance': Decimal(-10.00),
-  'Master Category': 'Master',
-  'Month': 'July 2021',
-  'Outflows': Decimal(10.00),
-  'Sub Category': 'Sub'},
-  {'Budgeted': Decimal(0.00),
-  'Category': 'Master:Sub1',
-  'Category Balance': Decimal(-23.45),
-  'Master Category': 'Master',
-  'Month': 'July 2021',
-  'Outflows': Decimal(23.45),
-  'Sub Category': 'Sub1'},],
-  month:'July 2021',
-    }
+    this.state = { 
+      data:
+      {
+        'Master':{
+          'Sub':{
+            'July 2021':{
+              'Budgeted': Decimal(0.00),
+              'Category Balance': Decimal(-10.00),
+              'Outflows': Decimal(10.00),
+              }
+            },
+          'Sub1':{
+            'July 2021':{
+              'Budgeted': Decimal(0.00),
+              'Category Balance': Decimal(-23.45),
+              'Outflows': Decimal(23.45),
+              }
+            }
+          },
+      },
+    month:'July 2021',
+    };
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
     this.onBlur=this.onBlur.bind(this);
   }
@@ -34,24 +39,28 @@ getMonth(thisMonth, difference) {
 }
 handleBudgetChange(event) {
 if (event.keyCode!=13 & event.keyCode!=27) { return; }
-const id = event.target.id;
+const id = event.target.id.split(':');
+const master_category = id[0];
+const sub_category = id[1];
+const month = id[2];
+console.log([master_category,sub_category,month]);
 const value = Decimal(event.target.value);
-const outflows = this.state.data[id]['Outflows'];
-const new_data = this.state.data.slice();
+const outflows = this.state.data[master_category][sub_category][month]['Outflows'];
+const new_data = Object.assign({},this.state.data);
 if (event.keyCode==13){ // enter
-  new_data[id]['Category Balance'] = value.minus(outflows);
-  new_data[id]['Budgeted'] = value;
+  new_data[master_category][sub_category][month]['Category Balance'] = value.minus(outflows);
+  new_data[master_category][sub_category][month]['Budgeted'] = value;
   event.target.value = value;
   this.setState({data:new_data});
-  event.target.value=this.state.data[id]['Budgeted'].toFixed(2);
+  event.target.value=this.state.data[master_category][sub_category][month]['Budgeted'].toFixed(2);
 }
 else if (event.keyCode==27) // escape
 {
-  event.target.value=this.state.data[id]['Budgeted'].toFixed(2);
+  event.target.value=this.state.data[master_category][sub_category][month]['Budgeted'].toFixed(2);
 }
 }
 onBlur(event) {
-  event.target.value=this.state.data[event.target.id]['Budgeted'].toFixed(2);
+  event.target.value=this.state.data[master_category][sub_category][month]['Budgeted'].toFixed(2);
 }
   render() {
 const data = this.state.data;
@@ -59,26 +68,39 @@ const final=[];
 var total_budgeted = new Decimal(0.00);
 var total_outflows = new Decimal(0.00);
 var total_available = new Decimal(0.00);
-for (var key in data)
+const master_categories = Object.keys(data);
+console.log(master_categories);
+const month = this.state.month;
+for (let i = 0; i < master_categories.length; i++)
 {
-  if (data[key]['Month']!=this.state.month) {continue;}
-  total_budgeted = total_budgeted.plus(data[key]['Budgeted']);
-  total_outflows = total_outflows.plus(data[key]['Outflows']);
-  total_available = total_available.plus(data[key]['Category Balance']);
-  final.push(
- <tr key={key} bgcolor={key%2==0 ? "#ddd" : '#eee'} >
-  <td>{data[key]['Sub Category']}</td>
-  <td><TextField 
-      id={key} 
-      variant="outlined" 
-      defaultValue={data[key]['Budgeted'].toFixed(2)}
-      onKeyDown={this.handleBudgetChange} 
-      onBlur={this.onBlur} 
-      inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/>
-  </td>
-  <td>-{data[key]['Outflows'].toFixed(2)}</td>
-  <td>{data[key]['Category Balance'].toFixed(2)}</td>
-  </tr>);
+  let master_category = master_categories[i];
+  console.log(master_category);
+  const sub_categories = Object.keys(data[master_category]);
+  console.log(sub_categories);
+  final.push(<tr><td colSpan="3">{master_category}</td></tr>)
+  for (let j = 0; j < sub_categories.length; j++)
+  {
+    let sub_category = sub_categories[j];
+    total_budgeted = total_budgeted.plus(data[master_category][sub_category][month]['Budgeted']);
+    total_outflows = total_outflows.plus(data[master_category][sub_category][month]['Outflows']);
+    total_available = total_available.plus(data[master_category][sub_category][month]['Category Balance']);
+    const key = master_category+':'+sub_category+':'+month;
+    console.log(key);
+    final.push(
+  <tr key={key} bgcolor={j%2==0 ? "#ddd" : '#eee'} >
+    <td>{sub_category}</td>
+    <td><TextField 
+        id={key} 
+        variant="outlined" 
+        defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)}
+        onKeyDown={this.handleBudgetChange} 
+        onBlur={this.onBlur} 
+        inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/>
+    </td>
+    <td>-{data[master_category][sub_category][month]['Outflows'].toFixed(2)}</td>
+    <td>{data[master_category][sub_category][month]['Category Balance'].toFixed(2)}</td>
+    </tr>);
+  }
 }
 const not_budgeted_last_month = new Decimal(0.00);
 const overspent_last_month = new Decimal(0.00);
