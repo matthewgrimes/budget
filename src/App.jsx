@@ -1,463 +1,156 @@
 import React from 'react';
 import './App.css';
-
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import DataFrame from 'dataframe-js';
+import Decimal from 'decimal.js';
 export class BudgetDataBase extends React.Component {
   constructor(props){
     super(props)
     this.state = { data:
-      [{'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Amazon Visa',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
+    [{'Budgeted': Decimal(0.00),
+  'Category': 'Master:Sub',
+  'Category Balance': Decimal(-10.00),
+  'Master Category': 'Master',
   'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Amazon Visa ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:American Express Gold',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
+  'Outflows': Decimal(10.00),
+  'Sub Category': 'Sub'},
+  {'Budgeted': Decimal(0.00),
+  'Category': 'Master:Sub1',
+  'Category Balance': Decimal(-23.45),
+  'Master Category': 'Master',
   'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` American Express Gold ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Apple Card',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Apple Card ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Chase Business Ink',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Chase Business Ink ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Chase Freedom',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Chase Freedom ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Chase Freedom Flex',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Chase Freedom Flex ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Chase Freedom Unlimited',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Chase Freedom Unlimited ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Chase Sapphire Reserve',
-  'Category Balance': 96.22,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Chase Sapphire Reserve ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:Fidelity Visa',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` Fidelity Visa ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Pre-YNAB Debt:US Bank Credit Card',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Pre-YNAB Debt ` US Bank Credit Card ` MasterCategory/__PreYNABDebtMaster__'},
- {'Budgeted': 0.0,
-  'Category': 'Monthly Expenses:Rent',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Monthly Expenses ` Rent ` 0B873D19-8E04-EBCB-BAA5-8B81DC1C47DC'},
- {'Budgeted': 0.0,
-  'Category': 'Long-Term Savings:House Stuff',
-  'Category Balance': 0.0,
-  'Master Category': 'Hidden Categories',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Long-Term Savings ` House Stuff ` 79053F34-AB7F-B8C8-F388-7F5768322E26'},
- {'Budgeted': 6.0,
-  'Category': 'Hobbies:Server',
-  'Category Balance': 4.0,
-  'Master Category': 'Hobbies',
-  'Month': 'July 2021',
-  'Outflows': 5.0,
-  'Sub Category': 'Server'},
- {'Budgeted': 100.0,
-  'Category': 'Hobbies:Video Games',
-  'Category Balance': -22.02,
-  'Master Category': 'Hobbies',
-  'Month': 'July 2021',
-  'Outflows': 122.02,
-  'Sub Category': 'Video Games'},
- {'Budgeted': 0.0,
-  'Category': 'Hobbies:Warhammer',
-  'Category Balance': 0.0,
-  'Master Category': 'Hobbies',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Warhammer'},
- {'Budgeted': 0.0,
-  'Category': 'Hobbies:Archery',
-  'Category Balance': 0.0,
-  'Master Category': 'Hobbies',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Archery'},
- {'Budgeted': 33.33,
-  'Category': 'Hobbies:Subscriptions',
-  'Category Balance': 33.33,
-  'Master Category': 'Hobbies',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Subscriptions'},
- {'Budgeted': 178.08,
-  'Category': 'Everyday Expenses:Restaurants',
-  'Category Balance': -129.92,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 308.0,
-  'Sub Category': 'Restaurants'},
- {'Budgeted': 61.58,
-  'Category': 'Everyday Expenses:Coffee Shops',
-  'Category Balance': -13.01,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 74.59,
-  'Sub Category': 'Coffee Shops'},
- {'Budgeted': 0.0,
-  'Category': 'Everyday Expenses:Books',
-  'Category Balance': -46.76,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 46.76,
-  'Sub Category': 'Books'},
- {'Budgeted': 15.0,
-  'Category': 'Everyday Expenses:Hair Cut',
-  'Category Balance': 15.0,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Hair Cut'},
- {'Budgeted': 250.0,
-  'Category': 'Everyday Expenses:Medical',
-  'Category Balance': 150.0,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 300.0,
-  'Sub Category': 'Medical'},
- {'Budgeted': 6.67,
-  'Category': 'Everyday Expenses:Misc',
-  'Category Balance': -255.01,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 261.68,
-  'Sub Category': 'Misc'},
- {'Budgeted': 0.0,
-  'Category': 'Everyday Expenses:Clothing',
-  'Category Balance': -196.33,
-  'Master Category': 'Everyday Expenses',
-  'Month': 'July 2021',
-  'Outflows': 196.33,
-  'Sub Category': 'Clothing'},
- {'Budgeted': 70.83,
-  'Category': 'Long-Term Expenses:Credit Card Fees',
-  'Category Balance': -92.53,
-  'Master Category': 'Long-Term Expenses',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Credit Card Fees'},
- {'Budgeted': 0.0,
-  'Category': 'Long-Term Expenses:Taxes',
-  'Category Balance': 0.0,
-  'Master Category': 'Long-Term Expenses',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Taxes'},
- {'Budgeted': 4.0,
-  'Category': 'Long-Term Expenses:Email',
-  'Category Balance': 20.0,
-  'Master Category': 'Long-Term Expenses',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Email'},
- {'Budgeted': 2657.7,
-  'Category': 'Monthly Expenses:Mortgage Payment',
-  'Category Balance': 0.0,
-  'Master Category': 'Monthly Expenses',
-  'Month': 'July 2021',
-  'Outflows': 2657.7,
-  'Sub Category': 'Mortgage Payment'},
- {'Budgeted': 0.0,
-  'Category': 'Monthly Expenses:Transfer to Joint Account',
-  'Category Balance': 0.0,
-  'Master Category': 'Monthly Expenses',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Transfer to Joint Account'},
- {'Budgeted': 108.33,
-  'Category': 'Monthly Expenses:Philanthropy',
-  'Category Balance': 100.0,
-  'Master Category': 'Monthly Expenses',
-  'Month': 'July 2021',
-  'Outflows': 108.33,
-  'Sub Category': 'Philanthropy'},
- {'Budgeted': 4099.08,
-  'Category': 'Joint Expense:Groceries',
-  'Category Balance': -373.75,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 701.53,
-  'Sub Category': 'Groceries'},
- {'Budgeted': 0.0,
-  'Category': 'Joint Expense:Restaurants',
-  'Category Balance': -4888.21,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 552.13,
-  'Sub Category': 'Restaurants'},
- {'Budgeted': 0.0,
-  'Category': 'Joint Expense:Cash',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Cash'},
- {'Budgeted': 244.7,
-  'Category': 'Joint Expense:Gas',
-  'Category Balance': -48.55,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 95.04,
-  'Sub Category': 'Gas'},
- {'Budgeted': 191.49,
-  'Category': 'Joint Expense:Car',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Car'},
- {'Budgeted': 3052.34,
-  'Category': 'Joint Expense:Household Goods',
-  'Category Balance': -1018.58,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Household Goods'},
- {'Budgeted': 355.92,
-  'Category': 'Joint Expense:Travel',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 355.92,
-  'Sub Category': 'Travel'},
- {'Budgeted': -13979.11,
-  'Category': 'Joint Expense:Reimbursement',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Reimbursement'},
- {'Budgeted': 2145.93,
-  'Category': 'Joint Expense:Utilities',
-  'Category Balance': 89.52,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 382.69,
-  'Sub Category': 'Utilities'},
- {'Budgeted': 215.72,
-  'Category': 'Joint Expense:Movies',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 14.53,
-  'Sub Category': 'Movies'},
- {'Budgeted': 3673.93,
-  'Category': 'Joint Expense:Misc',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Misc'},
- {'Budgeted': 0.0,
-  'Category': 'Joint Expense:Home Expenses',
-  'Category Balance': -4500.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 4500.0,
-  'Sub Category': 'Home Expenses'},
- {'Budgeted': 0.0,
-  'Category': 'Joint Expense:Insurance',
-  'Category Balance': 0.0,
-  'Master Category': 'Joint Expense',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Insurance'},
- {'Budgeted': 67.51,
-  'Category': 'Savings:Gifts',
-  'Category Balance': 198.16,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Gifts'},
- {'Budgeted': 95.0,
-  'Category': 'Savings:Gym',
-  'Category Balance': -442.87,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': 532.01,
-  'Sub Category': 'Gym'},
- {'Budgeted': -95.0,
-  'Category': 'Savings:Productivity',
-  'Category Balance': 100.0,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': -100.0,
-  'Sub Category': 'Productivity'},
- {'Budgeted': 0.0,
-  'Category': 'Savings:Computer',
-  'Category Balance': 643.88,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Computer'},
- {'Budgeted': 0.0,
-  'Category': 'Savings:iPad',
-  'Category Balance': 0.0,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'iPad'},
- {'Budgeted': 0.0,
-  'Category': 'Savings:Travel',
-  'Category Balance': 2523.75,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': 326.25,
-  'Sub Category': 'Travel'},
- {'Budgeted': 0.0,
-  'Category': 'Savings:Rower/Bike',
-  'Category Balance': 0.0,
-  'Master Category': 'Savings',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Rower/Bike'},
- {'Budgeted': 500.0,
-  'Category': 'Long-Term Savings:Transfer to Brokerage',
-  'Category Balance': 43.41,
-  'Master Category': 'Long-Term Savings',
-  'Month': 'July 2021',
-  'Outflows': 500.0,
-  'Sub Category': 'Transfer to Brokerage'},
- {'Budgeted': 500.0,
-  'Category': 'Long-Term Savings:Transfer to IRA',
-  'Category Balance': 0.0,
-  'Master Category': 'Long-Term Savings',
-  'Month': 'July 2021',
-  'Outflows': 500.0,
-  'Sub Category': 'Transfer to IRA'},
- {'Budgeted': 620.0,
-  'Category': 'Long-Term Savings:Bitcoin',
-  'Category Balance': 0.0,
-  'Master Category': 'Long-Term Savings',
-  'Month': 'July 2021',
-  'Outflows': 620.0,
-  'Sub Category': 'Bitcoin'},
- {'Budgeted': 0.0,
-  'Category': 'Long-Term Savings:Emergency Fund',
-  'Category Balance': 325.58,
-  'Master Category': 'Long-Term Savings',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Emergency Fund'},
- {'Budgeted': 1841.67,
-  'Category': 'Long-Term Savings:401(k)',
-  'Category Balance': 0.03,
-  'Master Category': 'Long-Term Savings',
-  'Month': 'July 2021',
-  'Outflows': 1841.66,
-  'Sub Category': '401(k)'},
- {'Budgeted': 0.0,
-  'Category': 'Long-Term Savings:Fig Portfolio',
-  'Category Balance': 0.0,
-  'Master Category': 'Long-Term Savings',
-  'Month': 'July 2021',
-  'Outflows': 0.0,
-  'Sub Category': 'Fig Portfolio'}],
+  'Outflows': Decimal(23.45),
+  'Sub Category': 'Sub1'},],
+  month:'July 2021',
     }
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
     this.onBlur=this.onBlur.bind(this);
   }
-
+getMonth(thisMonth, difference) {
+  const date = new Date(thisMonth);
+  date.setMonth( (date.getMonth() + difference)%12 );
+  return (date.toLocaleString('default', { month: 'short' }));
+}
 handleBudgetChange(event) {
+if (event.keyCode!=13 & event.keyCode!=27) { return; }
 const id = event.target.id;
-const value = parseFloat(event.target.value).toFixed(2);
+const value = Decimal(event.target.value);
 const outflows = this.state.data[id]['Outflows'];
 const new_data = this.state.data.slice();
 if (event.keyCode==13){ // enter
-  new_data[id]['Category Balance'] = (value-outflows).toFixed(2);
+  new_data[id]['Category Balance'] = value.minus(outflows);
   new_data[id]['Budgeted'] = value;
   event.target.value = value;
   this.setState({data:new_data});
+  event.target.value=this.state.data[id]['Budgeted'].toFixed(2);
 }
 else if (event.keyCode==27) // escape
 {
-  event.target.value=this.state.data[id]['Budgeted'];
+  event.target.value=this.state.data[id]['Budgeted'].toFixed(2);
 }
 }
 onBlur(event) {
-  event.target.value=this.state.data[event.target.id]['Budgeted'];
+  event.target.value=this.state.data[event.target.id]['Budgeted'].toFixed(2);
 }
   render() {
 const data = this.state.data;
 const final=[];
-var total_budgeted = 0;
-var total_outflows = 0;
-var total_available = 0;
+var total_budgeted = new Decimal(0.00);
+var total_outflows = new Decimal(0.00);
+var total_available = new Decimal(0.00);
 for (var key in data)
 {
-  if (data[key]['Month']!='July 2021') {continue;}
-  total_budgeted += data[key]['Budgeted'];
-  total_outflows -= data[key]['Outflows'];
-  total_available += data[key]['Category Balance'];
+  if (data[key]['Month']!=this.state.month) {continue;}
+  total_budgeted = total_budgeted.plus(data[key]['Budgeted']);
+  total_outflows = total_outflows.plus(data[key]['Outflows']);
+  total_available = total_available.plus(data[key]['Category Balance']);
   final.push(
- <tr key={key}><td>{data[key]['Sub Category']}</td>
-  <td><TextField id={key} variant="outlined" defaultValue={data[key]['Budgeted']}
-  onKeyDown={this.handleBudgetChange} onBlur={this.onBlur} inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/></td>
-  <td><TextField id="filled-basic" variant="filled" value={-data[key]['Outflows']} /></td>
-  <td><TextField id="filled-basic" variant="filled" value={data[key]['Category Balance']} /></td>
+ <tr key={key} bgcolor={key%2==0 ? "#ddd" : '#eee'} >
+  <td>{data[key]['Sub Category']}</td>
+  <td><TextField 
+      id={key} 
+      variant="outlined" 
+      defaultValue={data[key]['Budgeted'].toFixed(2)}
+      onKeyDown={this.handleBudgetChange} 
+      onBlur={this.onBlur} 
+      inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/>
+  </td>
+  <td>-{data[key]['Outflows'].toFixed(2)}</td>
+  <td>{data[key]['Category Balance'].toFixed(2)}</td>
   </tr>);
 }
+const not_budgeted_last_month = new Decimal(0.00);
+const overspent_last_month = new Decimal(0.00);
+const income_this_month = new Decimal(500.00);
+const available_to_budget = not_budgeted_last_month.plus(income_this_month).minus(overspent_last_month).minus(total_budgeted);
   return (
-    <Box
-      component="form"
-      sx={{
-        '& > :not(style)': { m: 1, width: '100%' },
-      }}
-      noValidate
-      autoComplete="off"
-    >
-    {total_budgeted.toFixed(2)} {total_outflows.toFixed(2)} {total_available.toFixed(2)}
-<table>{final}</table>
-    </Box>
+<table>    
+<tbody>
+<tr><td rowSpan="5">{this.state.month}</td><td colSpan="3">{not_budgeted_last_month.toFixed(2)} Not Budgeted in {this.getMonth(this.state.month, -1)}</td></tr>
+<tr><td colSpan="3">{overspent_last_month.neg().toFixed(2)} Overspent in {this.getMonth(this.state.month, -1)}</td></tr>
+<tr><td colSpan="3">{income_this_month.toFixed(2)} Income for {this.state.month}</td></tr>
+<tr><td colSpan="3">{total_budgeted.neg().toFixed(2)} Budgeted in {this.state.month}</td></tr>
+<tr><td colSpan="3">{available_to_budget.toFixed(2)} Available to Budget</td></tr>
+<tr><td></td><th>Budgeted</th><th>Outflows</th><th>Balance</th></tr>
+<tr>
+  <td></td>
+  <td>${total_budgeted.toFixed(2)}</td>
+  <td>${total_outflows.neg().toFixed(2)}</td>
+  <td>${total_available.toFixed(2)}</td>
+</tr>
+{final}
+</tbody></table>
   );
 }
 }
 
+
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+
+export default function FormDialog() {
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      <Button variant="outlined" onClick={handleClickOpen}>
+        Open form dialog
+      </Button>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Subscribe</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To subscribe to this website, please enter your email address here. We
+            will send updates occasionally.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="Email Address"
+            type="email"
+            fullWidth
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>Subscribe</Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+}
