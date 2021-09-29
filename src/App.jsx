@@ -1,7 +1,9 @@
 import React from 'react';
 import './App.css';
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
 import InputAdornment from '@mui/material/InputAdornment';
 import Decimal from 'decimal.js';
 
@@ -34,11 +36,15 @@ export class BudgetDataBase extends React.Component {
           }}},
           'Master 3':{}
       },
-    month:'July 2021',
+    month:'May 2021',
     };
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
     this.onBlur=this.onBlur.bind(this);
+    this.changeMonth=this.changeMonth.bind(this);
   }
+changeMonth(newMonth) {
+  this.setState({month:newMonth});
+}
 getEarliestBudgetedMonth() {
   var earliest_month = null;
   const data = this.state.data;
@@ -97,12 +103,12 @@ getLastBudgetedMonth() {
 }
 getMonth(thisMonth, difference) {
   const date = new Date(thisMonth);
-  date.setMonth( (date.getMonth() + difference)%12 );
+  date.setMonth( (date.getMonth() + difference) );
   return (date.toLocaleString('default', { month: 'short' }));
 }
 getMonthLong(thisMonth, difference) {
   const date = new Date(thisMonth);
-  date.setMonth( (date.getMonth() + difference)%12 );
+  date.setMonth( (date.getMonth() + difference) );
   return (date.toLocaleString('default', { month: 'long' })+' '+date.getFullYear());
 }
 getIncome(month) {
@@ -159,7 +165,6 @@ getAvailableToBudget(month){
   }
 }
 getLastMonthsBalance(data,master_category,sub_category,month) {
-  console.log(month);
   return (data[master_category][sub_category][this.getMonthLong(month,-1)]) ? data[master_category][sub_category][this.getMonthLong(month,-1)]['Category Balance'] : Decimal(0);
 }
 getDefault(data,master_category,sub_category,month){
@@ -172,7 +177,11 @@ getDefault(data,master_category,sub_category,month){
   render() {
 const data = this.state.data;
 const final = [];
-const months = ['June 2021','July 2021','August 2021'];
+const num_months = 3;
+const months = [];
+for (let i=0; i<num_months; i++) {
+  months.push(this.getMonthLong(this.state.month,i));
+}
 for (let m=0; m<months.length; m++) {
   const month = months[m];
   const month_render=[];
@@ -223,6 +232,7 @@ for (let m=0; m<months.length; m++) {
   }
   
   let header = this.getMonthHeader(month,total_budgeted,total_outflows,total_available);
+  
   final.push (
     <table style={{float: 'left'}}>    
     <tbody>
@@ -231,11 +241,18 @@ for (let m=0; m<months.length; m++) {
     </tbody></table>
   );
   }
+  let nav_footer = this.getNavFooter();
+  final.push(nav_footer);
   return(final);
 }
 
+getNavFooter() {
+  return(<><Link onClick={() => this.changeMonth(this.getMonthLong(this.state.month,-1))}>{'<<'}</Link>{this.state.month}
+  <Link onClick={() => this.changeMonth(this.getMonthLong(this.state.month,1))}>{'>>'}</Link></>);
+}
+
 getMonthHeader(month,total_budgeted,total_outflows,total_available) {
-  const not_budgeted_last_month = this.getAvailableToBudget(this.getMonthLong(month,-1));
+  const not_budgeted_last_month = month==this.getEarliestBudgetedMonth() ? Decimal(0) : this.getAvailableToBudget(this.getMonthLong(month,-1));
   const overspent_last_month = this.getOverspentLastMonth(month);
   const income_this_month = this.getIncome(month);
   const available_to_budget = not_budgeted_last_month.plus(income_this_month).plus(overspent_last_month).minus(total_budgeted);
