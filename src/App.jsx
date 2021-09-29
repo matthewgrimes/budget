@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Decimal from 'decimal.js';
+
 export class BudgetDataBase extends React.Component {
   constructor(props){
     super(props)
@@ -26,24 +27,197 @@ export class BudgetDataBase extends React.Component {
               }
             }
           },
+          'Master 2':{'Sub 2':{'May 2021':{
+            'Budgeted': Decimal(0.00),
+            'Category Balance': Decimal(-10.00),
+            'Outflows': Decimal(-10.00)
+          }}},
+          'Master 3':{}
       },
     month:'July 2021',
     };
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
     this.onBlur=this.onBlur.bind(this);
   }
+getEarliestBudgetedMonth() {
+  var earliest_month = null;
+  const data = this.state.data;
+  const master_categories = Object.keys(data);
+  for (let i = 0; i < master_categories.length; i++)
+  {
+    var master_category_overspent = new Decimal(0.00);
+    let master_category = master_categories[i];
+    const sub_categories = Object.keys(data[master_category]);
+    for (let j = 0; j < sub_categories.length; j++)
+    {
+      let sub_category = sub_categories[j];
+      if (sub_category) {
+        let months = Object.keys(data[master_category][sub_category]);
+        if (!months) { continue; }
+        for (let k=0; k<months.length; k++) {
+          let month = months[k];
+          let a = new Date(month);
+          let b = new Date(earliest_month);
+          if (!earliest_month | a<b) {
+            earliest_month = month;
+          }
+        }
+      }
+     }
+  }
+  return(earliest_month);  
+}
 getMonth(thisMonth, difference) {
   const date = new Date(thisMonth);
   date.setMonth( (date.getMonth() + difference)%12 );
   return (date.toLocaleString('default', { month: 'short' }));
 }
+getMonthLong(thisMonth, difference) {
+  const date = new Date(thisMonth);
+  date.setMonth( (date.getMonth() + difference)%12 );
+  return (date.toLocaleString('default', { month: 'long' })+' '+date.getFullYear());
+}
+getIncome(month) {
+  return Decimal(500.00);
+}
+getOverspentLastMonth(month){
+  return(this.getOverspent(this.getMonthLong(month,-1)));
+}
+getOverspent(month){
+  const data = this.state.data;
+  var total_overspent = new Decimal(0.00);
+  const master_categories = Object.keys(data);
+  for (let i = 0; i < master_categories.length; i++)
+  {
+    var master_category_overspent = new Decimal(0.00);
+    let master_category = master_categories[i];
+    const sub_categories = Object.keys(data[master_category]);
+    for (let j = 0; j < sub_categories.length; j++)
+    {
+      let sub_category = sub_categories[j];
+      if (sub_category) { 
+        if (data[master_category][sub_category][month]) {
+          master_category_overspent = master_category_overspent.plus(Decimal.min(0,data[master_category][sub_category][month]['Outflows']));
+        }
+      }
+    }
+      total_overspent = total_overspent.plus(master_category_overspent);
+  }
+  return(total_overspent);
+}
+getAvailableToBudget(month){
+  const data = this.state.data;
+  var total_budgeted = new Decimal(0.00);
+  const master_categories = Object.keys(data);
+  var month_had_budget_item = false;
+  for (let i = 0; i < master_categories.length; i++)
+  {
+    var master_category_budgeted = new Decimal(0.00);
+    let master_category = master_categories[i];
+    const sub_categories = Object.keys(data[master_category]);
+    for (let j = 0; j < sub_categories.length; j++)
+    {
+      let sub_category = sub_categories[j];
+      if (data[master_category][sub_category][month]) { 
+        month_had_budget_item = true; 
+        master_category_budgeted = master_category_budgeted.plus(data[master_category][sub_category][month]['Budgeted']);
+      }
+    }
+      total_budgeted = total_budgeted.plus(master_category_budgeted);
+  }
+  if (month==this.getEarliestBudgetedMonth()) { return this.getIncome(month).minus(total_budgeted);}
+  else {
+    return(this.getAvailableToBudget(this.getMonthLong(month,-1)).plus(this.getIncome(month)).plus(this.getOverspentLastMonth(month)).minus(total_budgeted));
+  }
+}
+
+getDefault(data,master_category,sub_category,month){
+  return data[master_category][sub_category][month] ? data[master_category][sub_category][month] : {
+              'Budgeted': Decimal(0.00),
+              'Category Balance': Decimal(0.00),
+              'Outflows': Decimal(0.00),
+              }
+}
+  render() {
+const data = this.state.data;
+const final=[];
+var total_budgeted = new Decimal(0.00);
+var total_outflows = new Decimal(0.00);
+var total_available = new Decimal(0.00);
+const master_categories = Object.keys(data);
+const month = this.state.month;
+for (let i = 0; i < master_categories.length; i++)
+{
+  var master_category_budgeted = new Decimal(0.00);
+  var master_category_outflows = new Decimal(0.00);
+  var master_category_available = new Decimal(0.00);
+  let master_category = master_categories[i];
+  const sub_categories = Object.keys(data[master_category]);
+  const sub_category_render = [];
+  for (let j = 0; j < sub_categories.length; j++)
+  {
+    let sub_category = sub_categories[j];
+    data[master_category][sub_category][month] = this.getDefault(data,master_category,sub_category,month);
+    master_category_budgeted = master_category_budgeted.plus(data[master_category][sub_category][month]['Budgeted']);
+    master_category_outflows = master_category_outflows.plus(data[master_category][sub_category][month]['Outflows']);
+    master_category_available = master_category_available.plus(data[master_category][sub_category][month]['Category Balance']);
+    const key = master_category+':'+sub_category+':'+month;
+    sub_category_render.push(
+  <tr key={key} bgcolor={j%2==0 ? "#ddd" : '#eee'} >
+    <td>{sub_category}</td>
+    <td><TextField 
+        id={key} 
+        variant="outlined" 
+        defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)}
+        onKeyDown={this.handleBudgetChange} 
+        onBlur={this.onBlur} 
+        inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/>
+    </td>
+    <td>{data[master_category][sub_category][month]['Outflows'].neg().toFixed(2)}</td>
+    <td>{data[master_category][sub_category][month]['Category Balance'].toFixed(2)}</td>
+    </tr>);
+  }
+  total_budgeted = total_budgeted.plus(master_category_budgeted);
+  total_outflows = total_outflows.plus(master_category_outflows);
+  total_available = total_available.plus(master_category_available);
+  final.push([<tr>
+  <td>{master_category}</td>
+  <td>{master_category_budgeted.toFixed(2)}</td>
+  <td>{master_category_outflows.neg().toFixed(2)}</td>
+  <td>{master_category_available.toFixed(2)}</td>
+  </tr>].concat(sub_category_render));
+}
+const not_budgeted_last_month = this.getAvailableToBudget(this.getMonthLong(month,-1));
+const overspent_last_month = this.getOverspentLastMonth(month);
+const income_this_month = this.getIncome(month);
+const available_to_budget = not_budgeted_last_month.plus(income_this_month).plus(overspent_last_month).minus(total_budgeted);
+  return (
+<table>    
+<tbody>
+<tr><td rowSpan="5">{this.state.month}</td><td colSpan="3">{not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Not Budgeted in {this.getMonth(this.state.month, -1)}</td></tr>
+<tr><td colSpan="3">{overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this.getMonth(this.state.month, -1)}</td></tr>
+<tr><td colSpan="3">{income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this.getMonth(this.state.month, 0)}</td></tr>
+<tr><td colSpan="3">{total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this.getMonth(this.state.month, 0)}</td></tr>
+<tr><td colSpan="3">{available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget</td></tr>
+<tr><td></td><th>Budgeted</th><th>Outflows</th><th>Balance</th></tr>
+<tr>
+  <td></td>
+  <td>${total_budgeted.toFixed(2)}</td>
+  <td>${total_outflows.neg().toFixed(2)}</td>
+  <td>${total_available.toFixed(2)}</td>
+</tr>
+{final}
+</tbody></table>
+  );
+}
+
+
 handleBudgetChange(event) {
 if (event.keyCode!=13 & event.keyCode!=27) { return; }
 const id = event.target.id.split(':');
 const master_category = id[0];
 const sub_category = id[1];
 const month = id[2];
-console.log([master_category,sub_category,month]);
 const value = Decimal(event.target.value);
 const outflows = this.state.data[master_category][sub_category][month]['Outflows'];
 const new_data = Object.assign({},this.state.data);
@@ -60,119 +234,62 @@ else if (event.keyCode==27) // escape
 }
 }
 onBlur(event) {
+  const id = event.target.id.split(':');
+  const master_category = id[0];
+  const sub_category = id[1];
+  const month = id[2];
   event.target.value=this.state.data[master_category][sub_category][month]['Budgeted'].toFixed(2);
 }
-  render() {
-const data = this.state.data;
-const final=[];
-var total_budgeted = new Decimal(0.00);
-var total_outflows = new Decimal(0.00);
-var total_available = new Decimal(0.00);
-const master_categories = Object.keys(data);
-console.log(master_categories);
-const month = this.state.month;
-for (let i = 0; i < master_categories.length; i++)
-{
-  let master_category = master_categories[i];
-  console.log(master_category);
-  const sub_categories = Object.keys(data[master_category]);
-  console.log(sub_categories);
-  final.push(<tr><td colSpan="3">{master_category}</td></tr>)
-  for (let j = 0; j < sub_categories.length; j++)
-  {
-    let sub_category = sub_categories[j];
-    total_budgeted = total_budgeted.plus(data[master_category][sub_category][month]['Budgeted']);
-    total_outflows = total_outflows.plus(data[master_category][sub_category][month]['Outflows']);
-    total_available = total_available.plus(data[master_category][sub_category][month]['Category Balance']);
-    const key = master_category+':'+sub_category+':'+month;
-    console.log(key);
-    final.push(
-  <tr key={key} bgcolor={j%2==0 ? "#ddd" : '#eee'} >
-    <td>{sub_category}</td>
-    <td><TextField 
-        id={key} 
-        variant="outlined" 
-        defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)}
-        onKeyDown={this.handleBudgetChange} 
-        onBlur={this.onBlur} 
-        inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/>
-    </td>
-    <td>-{data[master_category][sub_category][month]['Outflows'].toFixed(2)}</td>
-    <td>{data[master_category][sub_category][month]['Category Balance'].toFixed(2)}</td>
-    </tr>);
-  }
-}
-const not_budgeted_last_month = new Decimal(0.00);
-const overspent_last_month = new Decimal(0.00);
-const income_this_month = new Decimal(500.00);
-const available_to_budget = not_budgeted_last_month.plus(income_this_month).minus(overspent_last_month).minus(total_budgeted);
-  return (
-<table>    
-<tbody>
-<tr><td rowSpan="5">{this.state.month}</td><td colSpan="3">{not_budgeted_last_month.toFixed(2)} Not Budgeted in {this.getMonth(this.state.month, -1)}</td></tr>
-<tr><td colSpan="3">{overspent_last_month.neg().toFixed(2)} Overspent in {this.getMonth(this.state.month, -1)}</td></tr>
-<tr><td colSpan="3">{income_this_month.toFixed(2)} Income for {this.state.month}</td></tr>
-<tr><td colSpan="3">{total_budgeted.neg().toFixed(2)} Budgeted in {this.state.month}</td></tr>
-<tr><td colSpan="3">{available_to_budget.toFixed(2)} Available to Budget</td></tr>
-<tr><td></td><th>Budgeted</th><th>Outflows</th><th>Balance</th></tr>
-<tr>
-  <td></td>
-  <td>${total_budgeted.toFixed(2)}</td>
-  <td>${total_outflows.neg().toFixed(2)}</td>
-  <td>${total_available.toFixed(2)}</td>
-</tr>
-{final}
-</tbody></table>
-  );
-}
 }
 
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
 
-export default function FormDialog() {
-  const [open, setOpen] = React.useState(false);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+// import Button from '@mui/material/Button';
+// import Dialog from '@mui/material/Dialog';
+// import DialogActions from '@mui/material/DialogActions';
+// import DialogContent from '@mui/material/DialogContent';
+// import DialogContentText from '@mui/material/DialogContentText';
+// import DialogTitle from '@mui/material/DialogTitle';
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+// export default function FormDialog() {
+//   const [open, setOpen] = React.useState(false);
 
-  return (
-    <div>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Open form dialog
-      </Button>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Subscribe</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To subscribe to this website, please enter your email address here. We
-            will send updates occasionally.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Email Address"
-            type="email"
-            fullWidth
-            variant="standard"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleClose}>Subscribe</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
-}
+//   const handleClickOpen = () => {
+//     setOpen(true);
+//   };
+
+//   const handleClose = () => {
+//     setOpen(false);
+//   };
+
+//   return (
+//     <div>
+//       <Button variant="outlined" onClick={handleClickOpen}>
+//         Open form dialog
+//       </Button>
+//       <Dialog open={open} onClose={handleClose}>
+//         <DialogTitle>Subscribe</DialogTitle>
+//         <DialogContent>
+//           <DialogContentText>
+//             To subscribe to this website, please enter your email address here. We
+//             will send updates occasionally.
+//           </DialogContentText>
+//           <TextField
+//             autoFocus
+//             margin="dense"
+//             id="name"
+//             label="Email Address"
+//             type="email"
+//             fullWidth
+//             variant="standard"
+//           />
+//         </DialogContent>
+//         <DialogActions>
+//           <Button onClick={handleClose}>Cancel</Button>
+//           <Button onClick={handleClose}>Subscribe</Button>
+//         </DialogActions>
+//       </Dialog>
+//     </div>
+//   );
+// }
