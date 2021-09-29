@@ -247,8 +247,8 @@ for (let m=0; m<months.length; m++) {
 }
 
 getNavFooter() {
-  return(<><Link onClick={() => this.changeMonth(this.getMonthLong(this.state.month,-1))}>{'<<'}</Link>{this.state.month}
-  <Link onClick={() => this.changeMonth(this.getMonthLong(this.state.month,1))}>{'>>'}</Link></>);
+  return(<><Link component="button" onClick={() => this.changeMonth(this.getMonthLong(this.state.month,-1))}>{'<<'}</Link>{this.state.month}
+  <Link component="button" onClick={() => this.changeMonth(this.getMonthLong(this.state.month,1))}>{'>>'}</Link></>);
 }
 
 getMonthHeader(month,total_budgeted,total_outflows,total_available) {
