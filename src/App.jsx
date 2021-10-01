@@ -270,13 +270,13 @@ buildView(data,sub_total_dict,months) {
 getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
   const view = [];
   for (let i = 0; i < master_categories.length; i++)
-  {
+  {        
     let master_category = master_categories[i];
+    const sub_categories = Object.keys(data[master_category]);
     for (let m=0; m<months.length; m++) {
       let month = months[m];
       console.log([month,master_category]);
       console.log(sub_total_dict);
-      const sub_categories = Object.keys(data[master_category]);
       view.push(
       <>
       {m==0 ?
@@ -286,20 +286,23 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
       <Grid item xs={.5}>
       <BasicPopover parent={master_category} addButton={this.addSubCategory}/>
       </Grid></> : null }
-      <Grid item xs={m==0 ? 3 : 0} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
+      <Grid item xs={m==0 ? 3 : 0} lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
       <Item>{sub_total_dict[master_category][month]['Budgeted'].toFixed(2)}</Item>
       </Grid>      
-      <Grid item xs={m==0 ? 3 : 0} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
+      <Grid item xs={m==0 ? 3 : 0} lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
       <Item>{sub_total_dict[master_category][month]['Outflows'].neg().toFixed(2)}</Item>
       </Grid>      
-      <Grid item xs={m==0 ? 3 : 0} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
+      <Grid item xs={m==0 ? 3 : 0} lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
       <Item>{sub_total_dict[master_category][month]['Balance'].toFixed(2)}</Item>
       </Grid>
       </>
       );
-      for (let j = 0; j < sub_categories.length; j++)
-      {
-        let sub_category = sub_categories[j];
+    }
+    for (let j = 0; j < sub_categories.length; j++)
+    {
+      let sub_category = sub_categories[j];
+      for (let m=0; m<months.length; m++) {
+        let month = months[m];
         const key = master_category+':'+sub_category+':'+month;
         view.push(
         <>
@@ -309,7 +312,7 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
         {sub_category}
         </Grid>
         </> : null }
-        <Grid item xs={3}  lg={2} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
+        <Grid item xs={3}  lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
           <Item>
           <TextField 
               id={key} 
@@ -322,12 +325,12 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
             />
           </Item>
         </Grid>      
-        <Grid item xs={m==0 ? 3 : 0} lg={2} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>        
+        <Grid item xs={3} lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>        
           <Item>
           {data[master_category][sub_category][month]['Outflows'].neg().toFixed(2)}
           </Item>
         </Grid>      
-        <Grid item xs={m==0 ? 3 : 0} lg={2} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
+        <Grid item xs={3} lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
           <Item>
           {data[master_category][sub_category][month]['Balance'].toFixed(2)}
           </Item>
@@ -336,6 +339,7 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
         );
       }
     }
+    
   }
   return(view);
 }
