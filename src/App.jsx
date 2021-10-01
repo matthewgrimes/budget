@@ -55,6 +55,8 @@ export class BudgetDataBase extends React.Component {
     this.changeMonth=this.changeMonth.bind(this);
     this.addMasterCategory=this.addMasterCategory.bind(this);
     this.addSubCategory=this.addSubCategory.bind(this);
+    this.removeSubCategory=this.removeSubCategory.bind(this);
+    this.removeMasterCategory=this.removeMasterCategory.bind(this);
   }
 changeMonth(newMonth) {
   this.setState({month:newMonth});
@@ -266,7 +268,16 @@ buildView(data,sub_total_dict,months) {
   view.push(this.getNavFooter());
   return(<Box><Grid container spacing={2} columns={11}>{view}</Grid></Box>);
 }
-
+removeSubCategory(parent_category,category_to_remove) {
+  let data = this.state.data;
+  delete data[parent_category][category_to_remove];
+  this.setState({data:data});
+}
+removeMasterCategory(category_to_remove) {
+  let data = this.state.data;
+  delete data[category_to_remove];
+  this.setState({data:data});
+}
 getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
   const view = [];
   for (let i = 0; i < master_categories.length; i++)
@@ -281,7 +292,7 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
       <>
       {m==0 ?
       <><Grid item xs={1.5}>
-      {master_category}
+      <Link component="button" onClick={() => this.removeMasterCategory(master_category)}>{master_category}</Link>
       </Grid>
       <Grid item xs={.5}>
       <BasicPopover parent={master_category} addButton={this.addSubCategory}/>
@@ -309,14 +320,16 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
         {m==0 ?
         <>
         <Grid item xs={2}>
-        {sub_category}
+        <Link component="button" onClick={() => this.removeSubCategory(master_category,sub_category)}>{sub_category}</Link>
         </Grid>
         </> : null }
         <Grid item xs={3}  lg={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
           <Item>
           <TextField 
               id={key} 
-              variant="outlined" 
+              variant="standard"
+              InputProps={{style: {fontSize: 14}}}
+              style={{margin: 0, padding: 0}}
               defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)}
               onKeyDown={this.handleBudgetChange} 
               onBlur={this.onBlur} 
