@@ -222,9 +222,10 @@ for (let m=0; m<months.length; m++) {
       master_category_outflows = master_category_outflows.plus(data[master_category][sub_category][month]['Outflows']);
       master_category_available = master_category_available.plus(data[master_category][sub_category][month]['Category Balance']);
       const key = master_category+':'+sub_category+':'+month;
+      const sub_category_box = m==0 ? <><td>{sub_category}</td></> : null;
       sub_category_render.push(
-    <tr key={key} bgcolor={j%2==0 ? "#ddd" : '#eee'} >
-      <td>{sub_category}</td>
+    <tr bgcolor={j%2==0 ? "#ddd" : '#eee'} >
+      {sub_category_box}
       <td><TextField 
           id={key} 
           variant="outlined" 
@@ -240,12 +241,14 @@ for (let m=0; m<months.length; m++) {
     total_budgeted = total_budgeted.plus(master_category_budgeted);
     total_outflows = total_outflows.plus(master_category_outflows);
     total_available = total_available.plus(master_category_available);
+    const master_category_box = m==0 ? <><td>{master_category}<BasicPopover parent={master_category} addButton={this.addSubCategory}/></td></> : null;
     month_render.push([<tr>
-    <td>{master_category}<BasicPopover parent={master_category} addButton={this.addSubCategory}/></td>
+    {master_category_box}
     <td>{master_category_budgeted.toFixed(2)}</td>
     <td>{master_category_outflows.neg().toFixed(2)}</td>
     <td>{master_category_available.toFixed(2)}</td>
     </tr>].concat(sub_category_render));
+
   }
   
   let header = this.getMonthHeader(month,total_budgeted,total_outflows,total_available);
@@ -272,16 +275,17 @@ getMonthHeader(month,total_budgeted,total_outflows,total_available) {
   const not_budgeted_last_month = month==this.getEarliestBudgetedMonth() ? Decimal(0) : this.getAvailableToBudget(this.getMonthLong(month,-1));
   const overspent_last_month = this.getOverspentLastMonth(month);
   const income_this_month = this.getIncome(month);
+  const colspan = month==this.state.month ? "3" : "2";
   const available_to_budget = not_budgeted_last_month.plus(income_this_month).plus(overspent_last_month).minus(total_budgeted);
   let not_budgeted_string = not_budgeted_last_month.isPositive() ? 'Not Budgeted' : 'Overbudgeted';
-  return(<><tr><td rowSpan="5">{month}</td><td colSpan="3">{not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {not_budgeted_string} in {this.getMonth(month, -1)}</td></tr>
-<tr><td colSpan="3">{overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this.getMonth(month, -1)}</td></tr>
-<tr><td colSpan="3">{income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this.getMonth(month, 0)}</td></tr>
-<tr><td colSpan="3">{total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this.getMonth(month, 0)}</td></tr>
-<tr><td colSpan="3">{available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget</td></tr>
-<tr><td></td><th>Budgeted</th><th>Outflows</th><th>Balance</th></tr>
+  return(<><tr>{month==this.state.month ? <><td rowSpan="5"></td></> : null}<td rowSpan="5">{month}</td><td colSpan={colspan}>{not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {not_budgeted_string} in {this.getMonth(month, -1)}</td></tr>
+<tr><td colSpan={colspan}>{overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this.getMonth(month, -1)}</td></tr>
+<tr><td colSpan={colspan}>{income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this.getMonth(month, 0)}</td></tr>
+<tr><td colSpan={colspan}>{total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this.getMonth(month, 0)}</td></tr>
+<tr><td colSpan={colspan}>{available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget</td></tr>
+<tr>{month==this.state.month? <><td></td></> : null}<th>Budgeted</th><th>Outflows</th><th>Balance</th></tr>
 <tr>
-  <td><BasicPopover addButton={this.addMasterCategory}/></td>
+  {month==this.state.month ? <><td><BasicPopover addButton={this.addMasterCategory}/></td></> : null}
   <td>${total_budgeted.toFixed(2)}</td>
   <td>${total_outflows.neg().toFixed(2)}</td>
   <td>${total_available.toFixed(2)}</td>
@@ -341,10 +345,10 @@ export default function BasicPopover(props) {
 
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
-
+//
   return (
-    <div>
-      <Button aria-describedby={id} variant="contained" onClick={handleClick}>+</Button>
+    <div style={{float:'right'}}>
+      <Button aria-describedby={id} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={handleClick}>+</Button>
       <Popover
         id={id}
         open={open}
@@ -358,8 +362,6 @@ export default function BasicPopover(props) {
         <TextField 
           id={id} 
           variant="outlined" 
-          // onKeyDown={} 
-          // onBlur={} 
           value={form_value}
           onChange={({target}) => setFormValue(target.value)}
           />
