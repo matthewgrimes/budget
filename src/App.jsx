@@ -6,6 +6,9 @@ import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import InputAdornment from '@mui/material/InputAdornment';
 import Decimal from 'decimal.js';
+import Popover from '@mui/material/Popover';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 export class BudgetDataBase extends React.Component {
   constructor(props){
@@ -41,6 +44,8 @@ export class BudgetDataBase extends React.Component {
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
     this.onBlur=this.onBlur.bind(this);
     this.changeMonth=this.changeMonth.bind(this);
+    this.addMasterCategory=this.addMasterCategory.bind(this);
+    this.addSubCategory=this.addSubCategory.bind(this);
   }
 changeMonth(newMonth) {
   this.setState({month:newMonth});
@@ -174,6 +179,18 @@ getDefault(data,master_category,sub_category,month){
               'Outflows': Decimal(0.00),
               }
 }
+addMasterCategory(value,parent) {
+  if (value=="") { return; }
+  const data = this.state.data;
+  data[value] = {};
+  this.setState({data:data});
+}
+addSubCategory(value,parent) {
+  if (value=="") { return; }
+  const data = this.state.data;
+  data[parent][value]={};
+  this.setState({data:data});
+}
   render() {
 const data = this.state.data;
 const final = [];
@@ -224,7 +241,7 @@ for (let m=0; m<months.length; m++) {
     total_outflows = total_outflows.plus(master_category_outflows);
     total_available = total_available.plus(master_category_available);
     month_render.push([<tr>
-    <td>{master_category}</td>
+    <td>{master_category}<BasicPopover parent={master_category} addButton={this.addSubCategory}/></td>
     <td>{master_category_budgeted.toFixed(2)}</td>
     <td>{master_category_outflows.neg().toFixed(2)}</td>
     <td>{master_category_available.toFixed(2)}</td>
@@ -264,7 +281,7 @@ getMonthHeader(month,total_budgeted,total_outflows,total_available) {
 <tr><td colSpan="3">{available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget</td></tr>
 <tr><td></td><th>Budgeted</th><th>Outflows</th><th>Balance</th></tr>
 <tr>
-  <td></td>
+  <td><BasicPopover addButton={this.addMasterCategory}/></td>
   <td>${total_budgeted.toFixed(2)}</td>
   <td>${total_outflows.neg().toFixed(2)}</td>
   <td>${total_available.toFixed(2)}</td>
@@ -311,51 +328,43 @@ onBlur(event) {
 
 
 
-// import Button from '@mui/material/Button';
-// import Dialog from '@mui/material/Dialog';
-// import DialogActions from '@mui/material/DialogActions';
-// import DialogContent from '@mui/material/DialogContent';
-// import DialogContentText from '@mui/material/DialogContentText';
-// import DialogTitle from '@mui/material/DialogTitle';
+export default function BasicPopover(props) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [form_value,setFormValue] = React.useState("");
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-// export default function FormDialog() {
-//   const [open, setOpen] = React.useState(false);
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
-//   const handleClickOpen = () => {
-//     setOpen(true);
-//   };
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
 
-//   const handleClose = () => {
-//     setOpen(false);
-//   };
-
-//   return (
-//     <div>
-//       <Button variant="outlined" onClick={handleClickOpen}>
-//         Open form dialog
-//       </Button>
-//       <Dialog open={open} onClose={handleClose}>
-//         <DialogTitle>Subscribe</DialogTitle>
-//         <DialogContent>
-//           <DialogContentText>
-//             To subscribe to this website, please enter your email address here. We
-//             will send updates occasionally.
-//           </DialogContentText>
-//           <TextField
-//             autoFocus
-//             margin="dense"
-//             id="name"
-//             label="Email Address"
-//             type="email"
-//             fullWidth
-//             variant="standard"
-//           />
-//         </DialogContent>
-//         <DialogActions>
-//           <Button onClick={handleClose}>Cancel</Button>
-//           <Button onClick={handleClose}>Subscribe</Button>
-//         </DialogActions>
-//       </Dialog>
-//     </div>
-//   );
-// }
+  return (
+    <div>
+      <Button aria-describedby={id} variant="contained" onClick={handleClick}>+</Button>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        <TextField 
+          id={id} 
+          variant="outlined" 
+          // onKeyDown={} 
+          // onBlur={} 
+          value={form_value}
+          onChange={({target}) => setFormValue(target.value)}
+          />
+          <Button aria-describedby={id} variant="contained" onClick={() => props.addButton(form_value,props.parent)}>+</Button>
+      </Popover>
+    </div>
+  );
+}
