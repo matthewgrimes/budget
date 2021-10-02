@@ -19,7 +19,66 @@ const Item = styled(Paper)(({ theme }) => ({
   textAlign: 'center',
   color: theme.palette.text.secondary,
 }))
-
+class MonthDate {
+  constructor(string){
+    let month = string.split(' ')[0];
+    let year = string.split(' ')[1];
+    this.state = {
+      month: month,
+      year: year
+    }
+  }
+  getString(){
+    return(this.state.month+' '+this.state.year);
+  }
+  getMonthNumber(month){
+    const month_dict = {'January':1,'February':2,'March':3,'April':4,'May':5,
+    'June':6,'July':7,'August':8,'September':9,'October':10,'November':11,'December':12};
+    return(month_dict[month]);
+  }
+  getMonthName(month_index){
+    const month_list = ['January','February','March','April','May',
+    'June','July','August','September','October','November','December'];
+    return(month_list[(month_index-1)%12]);
+  }
+  decreaseMonth(){
+    let new_month = this.getMonthNumber(this.state.month);
+    let new_year = this.state.year;
+    new_month -= 1;
+    if (new_month<1) {
+      new_year -= 1;
+    }
+    new_month = this.getMonthName(new_month);
+    return new MonthDate(new_month+' '+new_year);
+  }
+  increaseMonth(){
+    let new_month = this.getMonthNumber(this.state.month);
+    let new_year = this.state.year;
+    new_month += 1;
+    if (new_month>12) {
+      new_year += 1;
+    }
+    new_month = this.getMonthName(new_month);
+    return new MonthDate(new_month+' '+this.state.year);
+  }
+  equalTo(otherMonth) {
+    return otherMonth.state.month===this.state.month & otherMonth.state.year===this.state.year;
+  }
+  greaterThan(otherMonth){
+    let this_month_index = this.getMonthNumber(this.state.month)%12;
+    let other_month_index = this.getMonthNumber(otherMonth.state.month)%12;
+    if (this.state.year>otherMonth.state.year) {
+      return true;
+    }
+    else if (this.state.year<otherMonth.state.year) {
+      return false;
+    }
+    else if (this_month_index > other_month_index) {
+      return true;
+    }
+    return false;
+  }  
+}
 export class BudgetDataBase extends React.Component {
   constructor(props){
     super(props)
@@ -64,6 +123,7 @@ changeMonth(newMonth) {
 getEarliestBudgetedMonth() {
   var earliest_month = null;
   const data = this.state.data;
+  let budgeted_months = [];
   const master_categories = Object.keys(data);
   for (let i = 0; i < master_categories.length; i++)
   {
@@ -76,22 +136,23 @@ getEarliestBudgetedMonth() {
       if (sub_category) {
         let months = Object.keys(data[master_category][sub_category]);
         if (!months) { continue; }
-        for (let k=0; k<months.length; k++) {
-          let month = months[k];
-          let a = new Date(month);
-          let b = new Date(earliest_month);
-          if (!earliest_month | a<b) {
-            earliest_month = month;
-          }
+        budgeted_months = budgeted_months.concat(months);
         }
       }
-     }
   }
-  return(earliest_month);  
+  let unique_budgeted_months = [...new Set(budgeted_months)];
+  unique_budgeted_months.sort(function(x, y) {
+    let a = new MonthDate(x);
+    let b = new MonthDate(y);
+    if ( b.greaterThan(a) ) { return -1; }
+    if ( a.greaterThan(b) ) { return 1; }
+    return 0;
+  });
+  return(unique_budgeted_months[0]);  
 }
 getLastBudgetedMonth() {
-  var earliest_month = null;
   const data = this.state.data;
+  let budgeted_months = [];
   const master_categories = Object.keys(data);
   for (let i = 0; i < master_categories.length; i++)
   {
@@ -104,34 +165,27 @@ getLastBudgetedMonth() {
       if (sub_category) {
         let months = Object.keys(data[master_category][sub_category]);
         if (!months) { continue; }
-        for (let k=0; k<months.length; k++) {
-          let month = months[k];
-          let a = new Date(month);
-          let b = new Date(earliest_month);
-          if (!earliest_month | a>b) {
-            earliest_month = month;
-          }
+        budgeted_months = budgeted_months.concat(months);
         }
       }
-     }
   }
-  return(earliest_month);  
-}
-getMonth(thisMonth, difference) {
-  const date = new Date(thisMonth);
-  date.setMonth( (date.getMonth() + difference) );
-  return (date.toLocaleString('default', { month: 'short' }));
-}
-getMonthLong(thisMonth, difference) {
-  const date = new Date(thisMonth);
-  date.setMonth( (date.getMonth() + difference) );
-  return (date.toLocaleString('default', { month: 'long' })+' '+date.getFullYear());
+  let unique_budgeted_months = [...new Set(budgeted_months)];
+  unique_budgeted_months.sort(function(x, y) {
+    let a = new MonthDate(x);
+    let b = new MonthDate(y);
+    if ( b.greaterThan(a) ) { return 1; }
+    if ( a.greaterThan(b) ) { return -1; }
+    return 0;
+  });
+  parseDateString(month);
+  return(unique_budgeted_months[0]);  
 }
 getIncome(month) {
   return Decimal(500.00);
 }
 getOverspentLastMonth(month){
-  return(this.getOverspent(this.getMonthLong(month,-1)));
+  let this_month = new MonthDate(month);
+  return(this.getOverspent(this_month.decreaseMonth().getString()));
 }
 getOverspent(month){
   const data = this.state.data;
@@ -175,13 +229,19 @@ getAvailableToBudget(month){
     }
       total_budgeted = total_budgeted.plus(master_category_budgeted);
   }
-  if (month==this.getEarliestBudgetedMonth()) { return this.getIncome(month).minus(total_budgeted);}
+  console.log([month,this.getEarliestBudgetedMonth()])
+  let this_month = new MonthDate(month);
+  let earliest_month = new MonthDate(this.getEarliestBudgetedMonth());
+  console.log([this_month,earliest_month,this_month.decreaseMonth().getString()]);
+  if (earliest_month.equalTo(this_month) ) { return this.getIncome(month).minus(total_budgeted);}
   else {
-    return(this.getAvailableToBudget(this.getMonthLong(month,-1)).plus(this.getIncome(month)).plus(this.getOverspentLastMonth(month)).minus(total_budgeted));
+    return(this.getAvailableToBudget(this_month.decreaseMonth().getString()).plus(this.getIncome(month)).plus(this.getOverspentLastMonth(month)).minus(total_budgeted));
   }
 }
 getLastMonthsBalance(data,master_category,sub_category,month) {
-  return (data[master_category][sub_category][this.getMonthLong(month,-1)]) ? data[master_category][sub_category][this.getMonthLong(month,-1)]['Balance'] : Decimal(0);
+  let this_month = new MonthDate(month);
+  let prior_month = this_month.decreaseMonth().getString();
+  return (data[master_category][sub_category][prior_month]) ? data[master_category][sub_category][prior_month]['Balance'] : Decimal(0);
 }
 getDefault(data,master_category,sub_category,month){
   return data[master_category][sub_category][month] ? data[master_category][sub_category][month] : {
@@ -207,9 +267,11 @@ addSubCategory(value,parent) {
   const final = [];
   const num_months = 3; // amount requested -- won't necessarily get 3
   const months = [];
+  var this_month = new MonthDate(this.state.month);
   let sub_total_dict = {};
   for (let i=0; i<num_months; i++) {
-    months.push(this.getMonthLong(this.state.month,i));
+    months.push(this_month.getString());
+    this_month = this_month.increaseMonth();
   }
   for (let m=0; m<months.length; m++) {
     const month = months[m];
@@ -230,7 +292,6 @@ addSubCategory(value,parent) {
       {
         let sub_category = sub_categories[j];
         data[master_category][sub_category][month] = this.getDefault(data,master_category,sub_category,month);
-        console.log(data);
         master_category_budgeted = master_category_budgeted.plus(data[master_category][sub_category][month]['Budgeted']);
         master_category_outflows = master_category_outflows.plus(data[master_category][sub_category][month]['Outflows']);
         master_category_available = master_category_available.plus(data[master_category][sub_category][month]['Balance']);
@@ -246,9 +307,6 @@ addSubCategory(value,parent) {
     }
     sub_total_dict[month] = {'Budgeted':total_budgeted, 'Outflows':total_outflows,'Balance':total_available};
     }
-    console.log(sub_total_dict);
-    // let nav_footer = this.getNavFooter();
-    // final.push(nav_footer);
     return(this.buildView(data,sub_total_dict,months));
   }
 buildView(data,sub_total_dict,months) {
@@ -286,8 +344,6 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
     const sub_categories = Object.keys(data[master_category]);
     for (let m=0; m<months.length; m++) {
       let month = months[m];
-      console.log([month,master_category]);
-      console.log(sub_total_dict);
       view.push(
       <>
       {m==0 ?
@@ -330,7 +386,7 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
               variant="standard"
               InputProps={{style: {fontSize: 14}}}
               style={{margin: 0, padding: 0}}
-              defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)}
+              defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)!=0? data[master_category][sub_category][month]['Budgeted'].toFixed(2) : null}
               onKeyDown={this.handleBudgetChange} 
               onBlur={this.onBlur} 
               inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}
@@ -356,38 +412,18 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
   }
   return(view);
 }
-      //   sub_category_render.push(
-      // <Grid item bgcolor={j%2==0 ? "#ddd" : '#eee'} >
-      //   {sub_category_box}
-      //   <Item><TextField 
-      //       id={key} 
-      //       variant="outlined" 
-      //       defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)}
-      //       onKeyDown={this.handleBudgetChange} 
-      //       onBlur={this.onBlur} 
-      //       inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}/>
-      //   </Item>
-      //   <Item>{data[master_category][sub_category][month]['Outflows'].neg().toFixed(2)}</Item>
-      //   <Item>{data[master_category][sub_category][month]['Balance'].toFixed(2)}</Item>
-      //   </Grid>);
-      //     const master_category_box = m==0 ? <><Item>{master_category}<BasicPopover parent={master_category} addButton={this.addSubCategory}/></Item></> : null;
-      // month_render.push([<Grid item>
-      // {master_category_box}
-      // <Item>{master_category_budgeted.toFixed(2)}</Item>
-      // <Item>{master_category_outflows.neg().toFixed(2)}</Item>
-      // <Item>{master_category_available.toFixed(2)}</Item>
-      // </Grid>].concat(sub_category_render));
 
 getNavFooter() {
+  let this_month = new MonthDate(this.state.month);
   return(
     <>
     <Grid item xs={11}>
       <Item>
-        <Link component="button" onClick={() => this.changeMonth(this.getMonthLong(this.state.month,-1))}>
+        <Link component="button" onClick={() => this.changeMonth(this_month.decreaseMonth().getString())}>
         {'<<'}
         </Link>
       {this.state.month}
-        <Link component="button" onClick={() => this.changeMonth(this.getMonthLong(this.state.month,1))}>
+        <Link component="button" onClick={() => this.changeMonth(this_month.increaseMonth().getString())}>
         {'>>'}
         </Link>
       </Item>
@@ -401,34 +437,39 @@ getMonthHeader(months,sub_total_dict) {
   render.push(<><Grid item xs={2}></Grid></>);
   for (let m=0; m<months.length; m++){
     let month = months[m];
+    let this_month = new MonthDate(month);
+    console.log(month);
     let total_budgeted = sub_total_dict[month]['Budgeted'];
     let total_outflows = sub_total_dict[month]['Outflows'];
     let total_available = sub_total_dict[month]['Balance'];
-    const not_budgeted_last_month = month==this.getEarliestBudgetedMonth() ? Decimal(0) : this.getAvailableToBudget(this.getMonthLong(month,-1));
+    const not_budgeted_last_month = month==this.getEarliestBudgetedMonth() ? Decimal(0) : this.getAvailableToBudget(this_month.decreaseMonth().getString());
     const overspent_last_month = this.getOverspentLastMonth(month);
     const income_this_month = this.getIncome(month);
     const available_to_budget = not_budgeted_last_month.plus(income_this_month).plus(overspent_last_month).minus(total_budgeted);
     let not_budgeted_string = not_budgeted_last_month.isPositive() ? 'Not Budgeted' : 'Overbudgeted';
     render.push(
     <>
-    <Grid item xs={1} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg:'inline'} }}>
+    <Grid item xs={1} lg={.5} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg:'inline'} }}>
       <Item>
         <br /><br />
         {month.split(' ')[0].slice(0,3)}<br />{month.split(' ')[1]}
         <br /><br />
       </Item>
     </Grid>
-    <Grid item xs={m==0 ? 8 : 0} lg={2} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
+    <Grid item xs={m==0 ? 8 : 0} lg={2.5} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
       <Item>
-        {not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {not_budgeted_string} in {this.getMonth(month, -1)}
+        <Grid item >
+        {not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {not_budgeted_string} in {this_month.decreaseMonth().getString()}
         <br />
-        {overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this.getMonth(month, -1)}
+        {overspent_last_month.toFixed(2)=="0.00"?'-':null}{overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this_month.decreaseMonth().getString()}
         <br />
-        {income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this.getMonth(month, 0)}
+        +{income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this_month.getString()}
         <br />
-        {total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this.getMonth(month, 0)}
-        <br />
-        {available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget
+        {total_budgeted.toFixed(2)=="0.00"?'-':null}{total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this_month.getString()}
+        </Grid>
+        <hr />
+        ={available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget
+        
       </Item>
     </Grid>
     </>
