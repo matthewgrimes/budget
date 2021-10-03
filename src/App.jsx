@@ -177,7 +177,6 @@ getLastBudgetedMonth() {
     if ( a.greaterThan(b) ) { return -1; }
     return 0;
   });
-  parseDateString(month);
   return(unique_budgeted_months[0]);  
 }
 getIncome(month) {
@@ -229,10 +228,8 @@ getAvailableToBudget(month){
     }
       total_budgeted = total_budgeted.plus(master_category_budgeted);
   }
-  console.log([month,this.getEarliestBudgetedMonth()])
   let this_month = new MonthDate(month);
   let earliest_month = new MonthDate(this.getEarliestBudgetedMonth());
-  console.log([this_month,earliest_month,this_month.decreaseMonth().getString()]);
   if (earliest_month.equalTo(this_month) ) { return this.getIncome(month).minus(total_budgeted);}
   else {
     return(this.getAvailableToBudget(this_month.decreaseMonth().getString()).plus(this.getIncome(month)).plus(this.getOverspentLastMonth(month)).minus(total_budgeted));
@@ -438,7 +435,6 @@ getMonthHeader(months,sub_total_dict) {
   for (let m=0; m<months.length; m++){
     let month = months[m];
     let this_month = new MonthDate(month);
-    console.log(month);
     let total_budgeted = sub_total_dict[month]['Budgeted'];
     let total_outflows = sub_total_dict[month]['Outflows'];
     let total_available = sub_total_dict[month]['Balance'];
@@ -508,12 +504,11 @@ const outflows = this.state.data[master_category][sub_category][month]['Outflows
 const new_data = Object.assign({},this.state.data);
 if (event.keyCode==13){ // enter
   new_data[master_category][sub_category][month]['Balance'] = value.minus(outflows);
-  const last_month = this.getLastBudgetedMonth();
-  let temp_month = month.slice();
-  while (temp_month!=last_month) {
-    temp_month = this.getMonthLong(temp_month,1);
-    console.log([master_category,sub_category,temp_month]);
-    new_data[master_category][sub_category][temp_month]['Balance']=new_data[master_category][sub_category][temp_month]['Balance'].plus(Decimal.max(0,new_data[master_category][sub_category][this.getMonthLong(temp_month,-1)]['Balance']));
+  const last_month = new MonthDate(this.getLastBudgetedMonth());
+  let temp_month = new MonthDate(month);
+  while (!temp_month.equalTo(last_month)) {
+    temp_month = temp_month.increaseMonth();
+    new_data[master_category][sub_category][temp_month.getString()]['Balance']=new_data[master_category][sub_category][temp_month.getString()]['Balance'].plus(Decimal.max(0,new_data[master_category][sub_category][temp_month.decreaseMonth().getString()]['Balance']));
   }
   new_data[master_category][sub_category][month]['Budgeted'] = value;
   event.target.value = value;
