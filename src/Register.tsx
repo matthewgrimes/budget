@@ -7,7 +7,7 @@ import { DataGrid, GridRowsProp, GridColDef } from '@mui/x-data-grid';
 export function Register(props) {
   const columns: GridColDef[] = [
     {field: "Account", headerName: "Account", width: 150, editable: true},
-    {field: "Date", headerName: "Date", type:'date', editable: true, width: 150},
+    {field: "Date", headerName: "Date", editable: true, width: 150},
     {field: "Payee", headerName: "Payee", width: 150, editable: true},
     {field: "Category", headerName: "Category", width: 250, editable: true},
     {field: "Memo", headerName: "Memo", width: 150, editable: true},
