@@ -83,31 +83,8 @@ export class BudgetDataBase extends React.Component {
   constructor(props){
     super(props)
     this.state = { 
-      data:
-      {
-        'Master':{
-          'Sub':{
-            'June 2021':{
-              'Budgeted': Decimal(3.00),
-              'Balance': Decimal(-7.00),
-              'Outflows': Decimal(10.00),
-              }
-            },
-          'Sub1':{
-            'June 2021':{
-              'Budgeted': Decimal(0.00),
-              'Balance': Decimal(-23.45),
-              'Outflows': Decimal(23.45),
-              }
-            }
-          },
-          'Master 2':{'Sub 2':{'May 2021':{
-            'Budgeted': Decimal(0.00),
-            'Balance': Decimal(-10.00),
-            'Outflows': Decimal(-10.00)
-          }}}
-      },
-    month:'May 2021',
+      data: props.data,
+      month:'May 2021',
     };
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
     this.onBlur=this.onBlur.bind(this);

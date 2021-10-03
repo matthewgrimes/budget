@@ -5,7 +5,7 @@ import {BudgetDataBase} from './Budget'
 import {App} from './App'
 ReactDOM.render(
   <React.StrictMode>
-    <BudgetDataBase />
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 )
