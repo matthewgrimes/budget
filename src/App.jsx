@@ -59,7 +59,7 @@ class MonthDate {
       new_year += 1;
     }
     new_month = this.getMonthName(new_month);
-    return new MonthDate(new_month+' '+this.state.year);
+    return new MonthDate(new_month+' '+new_year);
   }
   equalTo(otherMonth) {
     return otherMonth.state.month===this.state.month & otherMonth.state.year===this.state.year;
@@ -386,7 +386,7 @@ getMonthBudgetRender(months, sub_total_dict, master_categories,data) {
               defaultValue={data[master_category][sub_category][month]['Budgeted'].toFixed(2)!=0? data[master_category][sub_category][month]['Budgeted'].toFixed(2) : null}
               onKeyDown={this.handleBudgetChange} 
               onBlur={this.onBlur} 
-              inputProps={{ inputMode: 'numeric', pattern:"[-]?[0-9]*.[0-9]{2}" }}
+              inputProps={{  pattern:"[-]?[0-9]*.[0-9]{2}" }}
               size="small"
             />
           </Item>
