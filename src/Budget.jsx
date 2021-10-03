@@ -84,6 +84,7 @@ export class BudgetDataBase extends React.Component {
     super(props)
     this.state = { 
       data: props.data,
+      income: props.income,
       month:'May 2021',
     };
     this.handleBudgetChange=this.handleBudgetChange.bind(this);
@@ -157,7 +158,8 @@ getLastBudgetedMonth() {
   return(unique_budgeted_months[0]);  
 }
 getIncome(month) {
-  return Decimal(500.00);
+  console.log(this.state.income);
+  return this.state.income[month] ? this.state.income[month] : Decimal(0);
 }
 getOverspentLastMonth(month){
   let this_month = new MonthDate(month);
