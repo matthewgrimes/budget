@@ -13,6 +13,7 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import CryptoJS from 'crypto-js';
+import dateFormat from 'dateformat';
 
 export class App extends React.Component {
   constructor(props){
@@ -20,6 +21,9 @@ export class App extends React.Component {
     this.state = {
       income: {},
       budget: {
+        'None':{
+          'Uncategorized':{}
+        },
         'Master':{
           'Sub':{
             'June 2021':{
@@ -113,6 +117,7 @@ export class App extends React.Component {
     };
     this.updateRegister = this.updateRegister.bind(this);
     this.changeState = this.changeState.bind(this);
+    this.addTransaction = this.addTransaction.bind(this);
     this.updateIncome();
   }
   updateIncome() {
@@ -156,10 +161,12 @@ export class App extends React.Component {
     let register = this.state.register;
     let budget = this.state.budget;
     let income = this.state.income;
+    if (!this.getRegisterEntry(id)['Category']) { return; }
     if (field == 'Category'| field == 'Date'| field == 'Inflow'| field == 'Outflow') {
       let master_category = this.getRegisterEntry(id)['Category'].split(':')[0];
       let sub_category = this.getRegisterEntry(id)['Category'].split(':')[1];
       let date = this.getRegisterEntry(id)['Date'].split(' ')[0]+' '+this.getRegisterEntry(id)['Date'].split(' ')[2];
+      income[date] = income[date] ? income[date] : Decimal(0);
       budget[master_category][sub_category][date] = budget[master_category][sub_category][date] ? budget[master_category][sub_category][date] : {'Budgeted':Decimal(0),'Outflows':Decimal(0),'Balance':Decimal(0)};
       if (field == 'Outflow') {
 
@@ -206,7 +213,11 @@ export class App extends React.Component {
         let new_date = value.split(' ')[0]+' '+value.split(' ')[2];
         let inflows = new Decimal(this.getRegisterEntry(id)['Inflow'] ? this.getRegisterEntry(id)['Inflow'] : 0);
         let outflows = new Decimal(this.getRegisterEntry(id)['Outflow'] ? this.getRegisterEntry(id)['Outflow'] : 0);
+
         income[new_date] = income[new_date] ? income[new_date] : Decimal(0);
+
+        budget[master_category][sub_category][new_date] = budget[master_category][sub_category][new_date] ? budget[master_category][sub_category][new_date] : {'Budgeted':Decimal(0),'Outflows':Decimal(0),'Balance':Decimal(0)};
+
         budget[master_category][sub_category][date]['Outflows']=budget[master_category][sub_category][date]['Outflows'].minus(outflows);
         budget[master_category][sub_category][date]['Balance']=budget[master_category][sub_category][date]['Balance'].plus(outflows);
         budget[master_category][sub_category][date]['Outflows']=budget[master_category][sub_category][date]['Outflows'].plus(inflows);
@@ -217,6 +228,8 @@ export class App extends React.Component {
         budget[master_category][sub_category][new_date]['Outflows']=budget[master_category][sub_category][new_date]['Outflows'].minus(inflows);
         budget[master_category][sub_category][new_date]['Balance']=budget[master_category][sub_category][new_date]['Balance'].plus(inflows);        
 
+        console.log(income[date]);
+        console.log(inflows); 
         income[date]=income[date].minus(inflows);
         income[new_date]=income[new_date].plus(Decimal(inflows));            
       }
@@ -256,11 +269,32 @@ export class App extends React.Component {
     }
     return register;
   }
+  addTransaction() {
+    let register = this.state.register;
+    let today = new Date();
+    console.log(register);
+    register=register.concat([{
+      'id':Date.now(),
+      "Account":'None',
+      "Date":dateFormat(today,'mmmm dd, yyyy'),
+      "Payee":'No Payee',
+      "Category":'None:Uncategorized',
+      "Memo":'',
+      "Outflow":null,
+      "Inflow":null,
+      "Cleared":false
+        }]);
+    this.setState({register:register});
+  }
   render() {
-    let now = Date.now();
-    console.log([now,CryptoJS.MD5(now).toString()]);
     if (this.state.view === 'register') {
-      return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/><Register data={this.state.register} update={this.updateRegister} categories={this.getBudgetCategories()}/></>);
+      return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
+      <Register 
+        data={this.state.register} 
+        update={this.updateRegister} 
+        categories={this.getBudgetCategories()} 
+        addTransaction={this.addTransaction} 
+      /></>);
     }
     else if (this.state.view === 'budget') {
       return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/><BudgetDataBase data={this.state.budget} income={this.state.income}/></>);

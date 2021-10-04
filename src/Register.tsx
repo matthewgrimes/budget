@@ -28,11 +28,14 @@ export function Register(props) {
     }
   ,[handleDeleteClick]];
   function handleDeleteClick(id) {
-    apiRef.current.updateRows([{id, _action:'delete'}])
+    props.removeTransaction(id);
   }
   function handleClick() {
     console.log('add new transaction');
+    console.log(props);
+    props.addTransaction();
   }
+  console.log(props.data);
   return(<div style={{ height: '600px', width: '100%'}}>
   <DataGrid 
     rows={props.data} 
