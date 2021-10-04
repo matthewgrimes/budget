@@ -2,6 +2,17 @@ import React from 'react'
 import {BudgetDataBase} from './Budget'
 import {Register} from './Register'
 import Decimal from 'decimal.js'
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import Button from '@mui/material/Button';
+import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import MenuIcon from '@mui/icons-material/Menu';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+
 export class App extends React.Component {
   constructor(props){
     super(props);
@@ -100,6 +111,7 @@ export class App extends React.Component {
       view: 'register',
     };
     this.updateRegister = this.updateRegister.bind(this);
+    this.changeState = this.changeState.bind(this);
     this.updateIncome();
   }
   updateIncome() {
@@ -190,13 +202,91 @@ export class App extends React.Component {
     this.setState({budget:budget});
     this.setState({income:income});
   }
+  getBudgetCategories() {
+    const categories = [];
+    const master_categories = Object.keys(this.state.budget);
+    for (let i = 0; i < master_categories.length; i++)
+    {
+      var master_category_overspent = new Decimal(0.00);
+      let master_category = master_categories[i];
+      const sub_categories = Object.keys(this.state.budget[master_category]);
+      for (let j = 0; j < sub_categories.length; j++)
+      {
+        let sub_category = sub_categories[j];
+        if (sub_category) {
+          categories.push(master_category+':'+sub_category);
+        }
+      }
+    }
+    return categories;
+  }
+  changeState(new_state) {
+    this.setState({view:new_state.toLowerCase()});
+  }
   render() {
     console.log(this.state.income);
     if (this.state.view === 'register') {
-      return(<><Register data={this.state.register} update={this.updateRegister}/><BudgetDataBase data={this.state.budget} income={this.state.income}/></>);
+      return(<><LeftMenu accounts={['account']} menuNav={this.changeState}/><Register data={this.state.register} update={this.updateRegister} categories={this.getBudgetCategories()}/></>);
     }
     else if (this.state.view === 'budget') {
-      return(<BudgetDataBase data={this.state.budget} income={this.state.income}/>);
+      return(<><LeftMenu accounts={['account']} menuNav={this.changeState}/><BudgetDataBase data={this.state.budget} income={this.state.income}/></>);
     }
   }
+}
+
+function LeftMenu(props) {
+  const [state, setState] = React.useState({
+    open: false
+  });
+  const account_list = Array(props.accounts);
+  const toggleDrawer = (anchor, open) => (event) => {
+    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+      return;
+    }
+
+    setState({ ...state, [anchor]: open });
+  };
+
+  const list = (anchor) => (
+    <Box
+      sx={{ width: anchor === 'top' || anchor === 'bottom' ? 'auto' : 250 }}
+      role="presentation"
+      onClick={toggleDrawer(anchor, false)}
+      onKeyDown={toggleDrawer(anchor, false)}
+    >
+      <List>
+        <ListItem button key={'close'}>
+        <MenuOpenIcon />
+        </ListItem>
+        {['Register','Budget'].map((text, index) => (
+          <ListItem button key={text} onClick={() => props.menuNav(text)}>
+            <ListItemText primary={text} />
+          </ListItem>
+        ))}
+      </List>
+      <Divider />
+      <List>
+        {account_list.map((text, index) => (
+          <ListItem button key={text}>
+            <ListItemText primary={text} />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
+  return (
+    <div style={{float: 'left'}}>
+        <React.Fragment key='left'>
+          <Button onClick={toggleDrawer('left', true)}><MenuIcon /></Button>
+          <Drawer
+            anchor='left'
+            open={state['left']}
+            onClose={toggleDrawer('left', false)}
+          >
+            {list('left')}
+          </Drawer>
+        </React.Fragment>
+    </div>
+  );
 }
