@@ -1,11 +1,16 @@
 import React from 'react';
 import Decimal from 'decimal.js';
 
-import { DataGrid, GridRowsProp, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridRowsProp, GridColDef, GridToolbarContainer, useGridApiRef } from '@mui/x-data-grid';
+
+import AddIcon from '@mui/icons-material/Add';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 
 export function Register(props) {
-  const columns: GridColDef[] = [
+  const apiRef = useGridApiRef();
+  const columns = [
     {field: "Account", headerName: "Account", width: 150, editable: true},
     {field: "Date", headerName: "Date", editable: true, width: 150},
     {field: "Payee", headerName: "Payee", width: 150, editable: true},
@@ -15,13 +20,29 @@ export function Register(props) {
     {field: "Outflow", headerName: "Outflow", type:'number', width: 150, editable: true},
     {field: "Inflow", headerName: "Inflow", type:'number', width: 150, editable: true},
     {field: "Cleared", headerName: "Cleared", type:'boolean', width: 150, editable: true},
-  ];
-  return(<div style={{ height: 300, width: '100%'}}>
+    {field:' Delete', headerName: 'Delete', type:'actions', width: 150,
+      getActions: ({id}) => {
+        return([<><Button onClick={handleDeleteClick(id)}><DeleteIcon /></Button>
+        </>])
+      }
+    }
+  ,[handleDeleteClick]];
+  function handleDeleteClick(id) {
+    apiRef.current.updateRows([{id, _action:'delete'}])
+  }
+  function handleClick() {
+    console.log('add new transaction');
+  }
+  return(<div style={{ height: '600px', width: '100%'}}>
   <DataGrid 
-    checkboxSelection 
     rows={props.data} 
     columns={columns}
     onCellEditCommit={(params,event) => props.update(params)}
   />
+  <GridToolbarContainer>
+    <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
+      Add transaction
+    </Button>
+  </GridToolbarContainer>
   </div>);
 }
