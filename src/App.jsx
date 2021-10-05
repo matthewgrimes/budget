@@ -113,7 +113,7 @@ export class App extends React.Component {
         "Cleared":false,
         },        
       ],
-      view: 'register',
+      view: 'budget',
     };
     this.updateRegister = this.updateRegister.bind(this);
     this.changeState = this.changeState.bind(this);
@@ -143,7 +143,6 @@ export class App extends React.Component {
                       .plus(record['Inflow'] ? record['Inflow'] : Decimal(0))
                       .minus(record['Outflow'] ? record['Outflow'] : Decimal(0));                                                        
     }
-    console.log(accounts);
     return {'accounts':accounts,'balance':balance};
   }
   getRegisterEntry(id) {
@@ -157,7 +156,6 @@ export class App extends React.Component {
     let id = params.id;
     let field = params.field;
     let value = params.value;
-    console.log([id,field,value]);
     let register = this.state.register;
     let budget = this.state.budget;
     let income = this.state.income;
@@ -179,9 +177,7 @@ export class App extends React.Component {
       }
       else if (field == 'Inflow') {
         let old_value = new Decimal(this.getRegisterEntry(id)['Inflow'] ? this.getRegisterEntry(id)['Inflow'] : 0);
-        console.log(budget[master_category][sub_category][date]);
-        console.log(budget[master_category][sub_category][date]['Outflows']);
-        console.log(old_value);
+
 
         budget[master_category][sub_category][date]['Outflows']=budget[master_category][sub_category][date]['Outflows'].plus(old_value);
         budget[master_category][sub_category][date]['Outflows']=budget[master_category][sub_category][date]['Outflows'].minus(Decimal(value));
@@ -228,8 +224,6 @@ export class App extends React.Component {
         budget[master_category][sub_category][new_date]['Outflows']=budget[master_category][sub_category][new_date]['Outflows'].minus(inflows);
         budget[master_category][sub_category][new_date]['Balance']=budget[master_category][sub_category][new_date]['Balance'].plus(inflows);        
 
-        console.log(income[date]);
-        console.log(inflows); 
         income[date]=income[date].minus(inflows);
         income[new_date]=income[new_date].plus(Decimal(inflows));            
       }
@@ -272,7 +266,6 @@ export class App extends React.Component {
   addTransaction() {
     let register = this.state.register;
     let today = new Date();
-    console.log(register);
     register=register.concat([{
       'id':Date.now(),
       "Account":'None',
@@ -288,7 +281,8 @@ export class App extends React.Component {
   }
   render() {
     if (this.state.view === 'register') {
-      return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
+      return(<>
+      <LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
       <Register 
         data={this.state.register} 
         update={this.updateRegister} 
@@ -297,10 +291,10 @@ export class App extends React.Component {
       /></>);
     }
     else if (this.state.view === 'budget') {
-      return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/><BudgetDataBase data={this.state.budget} income={this.state.income}/></>);
+      return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
+      <BudgetDataBase data={this.state.budget} income={this.state.income}/></>);
     }
     else if ( this.state.view.startsWith('account_view') ) {
-      console.log(this.state.view);
       let account_to_view = this.state.view.split(':')[1];
       return(
         <>
@@ -319,7 +313,6 @@ function LeftMenu(props) {
   const accounts = props.balances.accounts;
   const balance = props.balances.balance;
   const account_list = Object.keys(accounts);
-  console.log(account_list); 
   const toggleDrawer = (anchor, open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
       return;

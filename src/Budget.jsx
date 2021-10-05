@@ -43,20 +43,22 @@ class MonthDate {
   }
   decreaseMonth(){
     let new_month = this.getMonthNumber(this.state.month);
-    let new_year = this.state.year;
+    let new_year = parseInt(this.state.year);
     new_month -= 1;
     if (new_month<1) {
       new_year -= 1;
+      new_month += 12;
     }
     new_month = this.getMonthName(new_month);
     return new MonthDate(new_month+' '+new_year);
   }
   increaseMonth(){
     let new_month = this.getMonthNumber(this.state.month);
-    let new_year = this.state.year;
+    let new_year = parseInt(this.state.year);
     new_month += 1;
     if (new_month>12) {
       new_year += 1;
+      new_month -= 12;
     }
     new_month = this.getMonthName(new_month);
     return new MonthDate(new_month+' '+new_year);
@@ -65,8 +67,8 @@ class MonthDate {
     return otherMonth.state.month===this.state.month & otherMonth.state.year===this.state.year;
   }
   greaterThan(otherMonth){
-    let this_month_index = this.getMonthNumber(this.state.month)%12;
-    let other_month_index = this.getMonthNumber(otherMonth.state.month)%12;
+    let this_month_index = this.getMonthNumber(this.state.month);
+    let other_month_index = this.getMonthNumber(otherMonth.state.month);
     if (this.state.year>otherMonth.state.year) {
       return true;
     }
@@ -158,7 +160,6 @@ getLastBudgetedMonth() {
   return(unique_budgeted_months[0]);  
 }
 getIncome(month) {
-  console.log(this.state.income);
   return this.state.income[month] ? this.state.income[month] : Decimal(0);
 }
 getOverspentLastMonth(month){
@@ -209,6 +210,7 @@ getAvailableToBudget(month){
   }
   let this_month = new MonthDate(month);
   let earliest_month = new MonthDate(this.getEarliestBudgetedMonth());
+  if (month.split(' ')[1]>2100) { return; }
   if (earliest_month.equalTo(this_month) ) { return this.getIncome(month).minus(total_budgeted);}
   else {
     return(this.getAvailableToBudget(this_month.decreaseMonth().getString()).plus(this.getIncome(month)).plus(this.getOverspentLastMonth(month)).minus(total_budgeted));
