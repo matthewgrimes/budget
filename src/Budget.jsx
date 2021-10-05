@@ -210,7 +210,6 @@ getAvailableToBudget(month){
   }
   let this_month = new MonthDate(month);
   let earliest_month = new MonthDate(this.getEarliestBudgetedMonth());
-  if (month.split(' ')[1]>2100) { return; }
   if (earliest_month.equalTo(this_month) ) { return this.getIncome(month).minus(total_budgeted);}
   else {
     return(this.getAvailableToBudget(this_month.decreaseMonth().getString()).plus(this.getIncome(month)).plus(this.getOverspentLastMonth(month)).minus(total_budgeted));
