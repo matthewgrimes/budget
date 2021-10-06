@@ -435,13 +435,13 @@ getMonthHeader(months,sub_total_dict) {
     <Grid item xs={m==0 ? 8 : 0} lg={2.5} sx={{ display: {xs: m==0 ? 'inline' : 'none', lg: 'inline'} }}>
       <Item>
         <Grid item >
-        {not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {not_budgeted_string} in {this_month.decreaseMonth().getString()}
+        {not_budgeted_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {not_budgeted_string} in {this_month.decreaseMonth().getString().split(' ')[0]}
         <br />
-        {overspent_last_month.toFixed(2)=="0.00"?'-':null}{overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this_month.decreaseMonth().getString()}
+        {overspent_last_month.toFixed(2)=="0.00"?'-':null}{overspent_last_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Overspent in {this_month.decreaseMonth().getString().split(' ')[0]}
         <br />
-        +{income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this_month.getString()}
+        +{income_this_month.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Income for {this_month.getString().split(' ')[0]}
         <br />
-        {total_budgeted.toFixed(2)=="0.00"?'-':null}{total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this_month.getString()}
+        {total_budgeted.toFixed(2)=="0.00"?'-':null}{total_budgeted.neg().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Budgeted in {this_month.getString().split(' ')[0]}
         </Grid>
         <hr />
         ={available_to_budget.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} Available to Budget
