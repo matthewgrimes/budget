@@ -280,9 +280,11 @@ export class App extends React.Component {
     this.setState({register:register});
   }
   render() {
-    if (this.state.view === 'register') {
-      return(<>
+    let to_render = [<>
       <LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
+      </>];
+    if (this.state.view === 'register') {
+      to_render.push(<>
       <Register 
         data={this.state.register} 
         update={this.updateRegister} 
@@ -291,18 +293,19 @@ export class App extends React.Component {
       /></>);
     }
     else if (this.state.view === 'budget') {
-      return(<><LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
-      <BudgetDataBase data={this.state.budget} income={this.state.income}/></>);
+      to_render.push(<>
+      <BudgetDataBase data={this.state.budget} income={this.state.income}/>
+      </>);
     }
     else if ( this.state.view.startsWith('account_view') ) {
       let account_to_view = this.state.view.split(':')[1];
-      return(
+      to_render.push(
         <>
-          <LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
           <Register data={this.getAccountTransactions(account_to_view)} update={this.updateRegister} categories={this.getBudgetCategories()}/>
         </>
       );
     }
+    return(to_render);
   }
 }
 
