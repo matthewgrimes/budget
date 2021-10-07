@@ -14,12 +14,14 @@ import MenuIcon from '@mui/icons-material/Menu';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import CryptoJS from 'crypto-js';
 import dateFormat from 'dateformat';
+import useFetch from 'react-fetch-hook';
 
 export class App extends React.Component {
   constructor(props){
     super(props);
     this.state = {
       income: {},
+      symbols: {},
       budget: {
         'None':{
           'Uncategorized':{}
@@ -56,6 +58,14 @@ export class App extends React.Component {
             'Outflows': Decimal(10.00)
           }}}
       },
+      investment_register : [
+        {'id':1,
+        'account':'brokerage',
+        'Date':'May 24, 2021',
+        'Symbol':'FTBFX',
+        'Amount':Decimal(1),
+        'Price':Decimal(10)},
+      ],
       register : [
         {
           'id':1,
@@ -113,12 +123,28 @@ export class App extends React.Component {
         "Cleared":false,
         },        
       ],
-      view: 'budget',
+      view: 'investments',
     };
     this.updateRegister = this.updateRegister.bind(this);
     this.changeState = this.changeState.bind(this);
     this.addTransaction = this.addTransaction.bind(this);
     this.updateIncome();
+  }
+  getPositionSymbols() {
+    const investment_register = this.state.investment_register;
+    let symbols = [];
+    for (let i=0; i<investment_register.length; i++) {
+      if (! (investment_register[i]['Symbol'] in symbols ) ) {
+        symbols.push(investment_register[i]['Symbol']);
+      }
+    }
+    return symbols;
+  }
+  loadSymbolInfo() {
+    let symbols = this.getPositionSymbols();
+    for (let i=0; i<symbols.length; i++) {
+      
+    }
   }
   updateIncome() {
     const income = this.state.income;
@@ -284,13 +310,128 @@ export class App extends React.Component {
       <LeftMenu balances={this.getBalances()} menuNav={this.changeState}/>
       </>];
     if (this.state.view === 'register') {
+      let columns = [
+        {field: "Account", headerName: "Account", width: 150, editable: true},
+        {field: "Date", headerName: "Date", editable: true, width: 150},
+        {field: "Payee", headerName: "Payee", width: 150, editable: true},
+        {field: "Category", headerName: "Category", width: 250, editable: true, type: 'singleSelect',
+      valueOptions: this.getBudgetCategories()},
+        {field: "Memo", headerName: "Memo", width: 150, editable: true},
+        {field: "Outflow", headerName: "Outflow", type:'number', width: 150, editable: true},
+        {field: "Inflow", headerName: "Inflow", type:'number', width: 150, editable: true},
+        {field: "Cleared", headerName: "Cleared", type:'boolean', width: 150, editable: true},
+        // {field:' Delete', headerName: 'Delete', type:'actions', width: 150,
+        //   getActions: ({id}) => {
+        //     return([<><Button onClick={handleDeleteClick(id)}><DeleteIcon /></Button>
+        //     </>])
+        //   }
+        // }
+      ]
       to_render.push(<>
       <Register 
         data={this.state.register} 
         update={this.updateRegister} 
-        categories={this.getBudgetCategories()} 
         addTransaction={this.addTransaction} 
+        columns={columns}
       /></>);
+    }
+    else if (this.state.view === 'investments') {
+      // async function getCurrentPrice(params) {
+      //     var symbol=params.getValue(params.id,'Symbol').toLowerCase();
+      //     var price = null;
+      //     (async () => {
+      //       const response = await fetch("https://yh-finance.p.rapidapi.com/market/v2/get-quotes?region=US&symbols="+symbol, {
+      //         "method": "GET",
+      //         "headers": {
+      //           "x-rapidapi-host": "yh-finance.p.rapidapi.com",
+      //           "x-rapidapi-key": "c9f5374e53mshd4a31d8c8a7f0b5p10c451jsn9f04210200cc"
+      //         }
+      //       });
+      //       const body = await response.json();
+      //       let price_string = await body['quoteResponse']['regularMarketPreviousClose']
+      //       console.log(body['quoteResponse']['regularMarketPreviousClose']);
+      //       price = await new Decimal(price_string);
+      //     })();    
+      //     return price;    
+      // }
+      function getCostBasis(params) {
+        return params.getValue(params.id,'Price')/params.getValue(params.id, 'Amount');
+      }
+      function getCurrentPrice(params) {
+          var symbol=params.getValue(params.id,'Symbol').toLowerCase();
+          const {isLoading, error, data} =  useFetch("https://yh-finance.p.rapidapi.com/market/v2/get-quotes?region=US&symbols="+symbol, {
+            "method": "GET",
+            "headers": {
+              "x-rapidapi-host": "yh-finance.p.rapidapi.com",
+              "x-rapidapi-key": "c9f5374e53mshd4a31d8c8a7f0b5p10c451jsn9f04210200cc"
+            }
+          })
+          if (isLoading) { return ('...') }
+          if (error) { console.log(error); }
+          return data['quoteResponse']['result'][0]['regularMarketPreviousClose']; 
+      }
+      function getGainLoss(params) {
+          var symbol=params.getValue(params.id,'Symbol').toLowerCase();
+          const {isLoading, error, data} =  useFetch("https://yh-finance.p.rapidapi.com/market/v2/get-quotes?region=US&symbols="+symbol, {
+            "method": "GET",
+            "headers": {
+              "x-rapidapi-host": "yh-finance.p.rapidapi.com",
+              "x-rapidapi-key": "c9f5374e53mshd4a31d8c8a7f0b5p10c451jsn9f04210200cc"
+            }
+          })
+          console.log([typeof(isLoading),typeof(error),typeof(data)]);
+          if (isLoading) { return ('...') }
+          if (error) { console.log(error); }
+          return (
+                (
+                  (
+                    Decimal(data['quoteResponse']['result'][0]['regularMarketPreviousClose']).minus(
+                    Decimal(params.getValue(params.id,'Cost Basis')))
+                  ).mul(Decimal(params.getValue(params.id,'Amount')))
+                ).toString(2)); 
+      }
+      function getGainLossPercent(params) {
+          var symbol=params.getValue(params.id,'Symbol').toLowerCase();
+          const {isLoading, error, data} =  useFetch("https://yh-finance.p.rapidapi.com/market/v2/get-quotes?region=US&symbols="+symbol, {
+            "method": "GET",
+            "headers": {
+              "x-rapidapi-host": "yh-finance.p.rapidapi.com",
+              "x-rapidapi-key": "c9f5374e53mshd4a31d8c8a7f0b5p10c451jsn9f04210200cc"
+            }
+          })
+          console.log([typeof(isLoading),typeof(error),typeof(data)]);
+          if (isLoading) { return ('...') }
+          if (error) { console.log(error); }
+          return (
+                (
+                  (
+                    Decimal(data['quoteResponse']['result'][0]['regularMarketPreviousClose']).minus(
+                    Decimal(params.getValue(params.id,'Cost Basis')))
+                  ).div(Decimal(params.getValue(params.id,'Cost Basis'))).mul(Decimal(100))
+                ).toString(2));
+      }
+      let columns = [
+        {field: "Account", headerName: "Account", width: 150, editable: true},
+        {field: "Date", headerName: "Date", editable: true, width: 125},
+        {field: "Symbol", headerName: "Symbol", width: 125, editable: true},
+        {field: "Amount", headerName: "Amount", width: 150, editable: true, type: 'number'},
+        {field: "Price", headerName: "Price", width: 150, editable: true, type: 'number'},
+        {field: "Cost Basis", headerName: "Cost Basis", width: 150, valueGetter: getCostBasis},
+        {field: "Current Price", 
+        headerName: "Current Price", 
+        valueGetter: getCurrentPrice,
+        width: 175,
+        },
+        {field: "Gain/Loss", headerName: "Gain/Loss", valueGetter: getGainLoss, width:150},
+        {field: "Gain/Loss %", headerName: "\%Gain/Loss", valueGetter: getGainLossPercent, width:175},
+      ]
+      to_render.push(<>
+      <Register 
+        data={this.state.investment_register} 
+        update={this.updateRegister} 
+        addTransaction={this.addTransaction} 
+        columns={columns}
+      /></>);      
     }
     else if (this.state.view === 'budget') {
       to_render.push(<>
@@ -335,7 +476,7 @@ function LeftMenu(props) {
         <ListItem button key={'close'}>
         <MenuOpenIcon />
         </ListItem>
-        {['Register','Budget'].map((text, index) => (
+        {['Register','Budget','Investments'].map((text, index) => (
           <ListItem button key={text} onClick={() => props.menuNav(text)}>
             <ListItemText inset={true} primary={text} secondary={text=='Register' ? '$'+balance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}/>
           </ListItem>

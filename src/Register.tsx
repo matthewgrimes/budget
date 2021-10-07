@@ -10,23 +10,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 export function Register(props) {
   const apiRef = useGridApiRef();
-  const columns = [
-    {field: "Account", headerName: "Account", width: 150, editable: true},
-    {field: "Date", headerName: "Date", editable: true, width: 150},
-    {field: "Payee", headerName: "Payee", width: 150, editable: true},
-    {field: "Category", headerName: "Category", width: 250, editable: true, type: 'singleSelect',
-  valueOptions: props.categories},
-    {field: "Memo", headerName: "Memo", width: 150, editable: true},
-    {field: "Outflow", headerName: "Outflow", type:'number', width: 150, editable: true},
-    {field: "Inflow", headerName: "Inflow", type:'number', width: 150, editable: true},
-    {field: "Cleared", headerName: "Cleared", type:'boolean', width: 150, editable: true},
-    {field:' Delete', headerName: 'Delete', type:'actions', width: 150,
-      getActions: ({id}) => {
-        return([<><Button onClick={handleDeleteClick(id)}><DeleteIcon /></Button>
-        </>])
-      }
-    }
-  ,[handleDeleteClick]];
+  const columns = props.columns;
   function handleDeleteClick(id) {
     props.removeTransaction(id);
   }
